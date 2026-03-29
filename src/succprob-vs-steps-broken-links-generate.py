@@ -25,7 +25,7 @@ if __name__ == "__main__":
         help="Step multiplication factor in steps = L * log2(N) * factor.",
     )
     parser.add_argument("--shots-noiseless", type=int, default=1, help="Shots for bl_prob=0.")
-    parser.add_argument("--shots-default", type=int, default=50, help="Shots for bl_prob>0.")
+    parser.add_argument("--shots-noisy", type=int, default=50, help="Shots for bl_prob>0.")
     parser.add_argument("--output", "-o", type=str, default="succprob-vs-steps-broken-links-data.json", help="Output JSON filename.")
     parser.add_argument("--force", action="store_true", help="Recompute entries even if already present")
     args = parser.parse_args()
@@ -43,7 +43,7 @@ if __name__ == "__main__":
             print(f"Skipping p={bl_prob}; cached {len(cached['probs'])} points")
             continue
 
-        shots = shots_for_prob(bl_prob, args.shots_noiseless, args.shots_default)
+        shots = shots_for_prob(bl_prob, args.shots_noiseless, args.shots_noisy)
         print(
             f"Running p={bl_prob}, grid={args.grid_size}, ell={args.ell}, "
             f"steps={steps}, shots={shots}"
