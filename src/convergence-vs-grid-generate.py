@@ -4,34 +4,47 @@ from shared_utils import (
     as_str_keyed_nested,
     compute_convergence_value,
     compute_tail_std,
+    format_bl_label,
     load_json,
-    should_compute,
     parse_float_list,
     parse_int_list,
     save_json,
+    should_compute,
     steps_from_factor,
 )
-
-
-def save_progress(filename, grid_sizes, bl_probs, data_dict, step_factor):
-    payload = {
-        "grid_sizes": grid_sizes,
-        "bl_probs": bl_probs,
-        "step_factor": step_factor,
-        "data": as_str_keyed_nested(data_dict),
-    }
-    save_json(filename, payload)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Generate convergence-vs-grid simulation data and save/update JSON.",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
-    parser.add_argument("--grid-sizes", type=parse_int_list, default="6,8,10,12,14")
-    parser.add_argument("--bl-probs", type=parse_float_list, default="0.01,0.1,0.2,0.5")
-    parser.add_argument("--output", "-o", type=str, default="convergence-vs-grid-data.json")
-    parser.add_argument("--shots", type=int, default=50)
-    parser.add_argument("--step-factor", type=float, default=8.0)
+    parser.add_argument(
+        "--grid-sizes",
+        type=parse_int_list,
+        default="6,8,10,12,14",
+        help="Comma-separated grid sizes.",
+    )
+    parser.add_argument(
+        "--bl-probs",
+        type=parse_float_list,
+        default="0.01,0.1,0.2,0.5",
+        help="Comma-separated broken-link probabilities.",
+    )
+    parser.add_argument(
+        "--output",
+        "-o",
+        type=str,
+        default="convergence-vs-grid-data.json",
+        help="Output JSON filename.",
+    )
+    parser.add_argument("--shots", type=int, default=50, help="Shots per experiment.")
+    parser.add_argument(
+        "--step-factor",
+        type=float,
+        default=8.0,
+        help="Step multiplication factor in steps = L * log2(N) * factor.",
+    )
     parser.add_argument("--force", action="store_true", help="Recompute entries even if already present")
     args = parser.parse_args()
 
@@ -83,7 +96,21 @@ if __name__ == "__main__":
                 "shots": int(args.shots),
             }
 
-            save_progress(args.output, grid_sizes, bl_probs, data_dict, args.step_factor)
+            data_to_save = {
+                "grid_sizes": grid_sizes,
+                "bl_probs": bl_probs,
+                "bl_labels": [format_bl_label(p) for p in bl_probs],
+                "step_factor": args.step_factor,
+                "data": as_str_keyed_nested(data_dict),
+            }
+            save_json(args.output, data_to_save)
 
-    save_progress(args.output, grid_sizes, bl_probs, data_dict, args.step_factor)
+    data_to_save = {
+        "grid_sizes": grid_sizes,
+        "bl_probs": bl_probs,
+        "bl_labels": [format_bl_label(p) for p in bl_probs],
+        "step_factor": args.step_factor,
+        "data": as_str_keyed_nested(data_dict),
+    }
+    save_json(args.output, data_to_save)
     print(f"Saved data to {args.output}")

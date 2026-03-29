@@ -4,13 +4,16 @@ import matplotlib.pyplot as plt
 import numpy as np
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 
-from shared_utils import load_json
+from shared_utils import format_ell_label, load_json
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Plot prob-vs-steps data from JSON file(s).")
-    parser.add_argument("files", nargs="*", default=["prob-vs-steps-data.json"])
-    parser.add_argument("--output", "-o", default="prob-vs-steps.pdf")
+    parser = argparse.ArgumentParser(
+        description="Plot prob-vs-steps data from JSON file(s).",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+    parser.add_argument("files", nargs="*", default=["prob-vs-steps-data.json"], help="JSON data files to load and merge.")
+    parser.add_argument("--output", "-o", default="prob-vs-steps.pdf", help="Output PDF filename.")
     args = parser.parse_args()
 
     merged = {}
@@ -32,7 +35,8 @@ if __name__ == "__main__":
         probs = np.array(branch["probs"])
         stds = np.array(branch["stds"])
         linestyle, color = style_cycle[i % len(style_cycle)]
-        label = f"$\\ell={branch['label']}$"
+        branch_label = branch.get("ell_label", branch.get("label", format_ell_label(branch["ell"], n_sites)))
+        label = f"$\\ell={branch_label}$"
         plt.plot(probs, linestyle, label=label)
         plt.fill_between(range(len(probs)), probs - stds, probs + stds, alpha=0.15, color=color)
 

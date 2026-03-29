@@ -1,6 +1,7 @@
 import argparse
 import noisylack as nl
 from shared_utils import (
+    format_bl_label,
     load_json,
     parse_float_list,
     save_json,
@@ -11,15 +12,21 @@ from shared_utils import (
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Generate succprob-vs-steps-broken-links data and save/update JSON."
+        description="Generate succprob-vs-steps-broken-links data and save/update JSON.",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
-    parser.add_argument("--grid-size", type=int, default=16)
-    parser.add_argument("--ell", type=float, default=0.0)
-    parser.add_argument("--bl-probs", type=parse_float_list, default="0.0,0.001,0.01")
-    parser.add_argument("--step-factor", type=float, default=1.0)
-    parser.add_argument("--shots-noiseless", type=int, default=1)
-    parser.add_argument("--shots-default", type=int, default=50)
-    parser.add_argument("--output", "-o", type=str, default="succprob-vs-steps-broken-links-data.json")
+    parser.add_argument("--grid-size", type=int, default=16, help="Grid side length L.")
+    parser.add_argument("--ell", type=float, default=0.0, help="Self-loop weight ell.")
+    parser.add_argument("--bl-probs", type=parse_float_list, default="0.0,0.001,0.01", help="Comma-separated broken-link probabilities.")
+    parser.add_argument(
+        "--step-factor",
+        type=float,
+        default=1.0,
+        help="Step multiplication factor in steps = L * log2(N) * factor.",
+    )
+    parser.add_argument("--shots-noiseless", type=int, default=1, help="Shots for bl_prob=0.")
+    parser.add_argument("--shots-default", type=int, default=50, help="Shots for bl_prob>0.")
+    parser.add_argument("--output", "-o", type=str, default="succprob-vs-steps-broken-links-data.json", help="Output JSON filename.")
     parser.add_argument("--force", action="store_true", help="Recompute entries even if already present")
     args = parser.parse_args()
 
@@ -58,16 +65,25 @@ if __name__ == "__main__":
             "shots": int(shots),
         }
 
-        save_json(
-            args.output,
-            {
-                "grid_size": args.grid_size,
-                "n_sites": n_sites,
-                "ell": float(args.ell),
-                "bl_probs": [float(v) for v in args.bl_probs],
-                "step_factor": args.step_factor,
-                "data": data,
-            },
-        )
+        data_to_save = {
+            "grid_size": args.grid_size,
+            "n_sites": n_sites,
+            "ell": float(args.ell),
+            "bl_probs": [float(v) for v in args.bl_probs],
+            "bl_labels": [format_bl_label(p) for p in args.bl_probs],
+            "step_factor": args.step_factor,
+            "data": data,
+        }
+        save_json(args.output, data_to_save)
 
+    data_to_save = {
+        "grid_size": args.grid_size,
+        "n_sites": n_sites,
+        "ell": float(args.ell),
+        "bl_probs": [float(v) for v in args.bl_probs],
+        "bl_labels": [format_bl_label(p) for p in args.bl_probs],
+        "step_factor": args.step_factor,
+        "data": data,
+    }
+    save_json(args.output, data_to_save)
     print(f"Saved data to {args.output}")

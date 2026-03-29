@@ -105,8 +105,8 @@ def parse_ell_values(raw, n_sites):
     return values
 
 
-def ell_label(ell, n_sites):
-    """Return a human-readable label for an ell value relative to N=n_sites."""
+def format_ell_label(ell, n_sites):
+    """Format self-loop weight labels relative to N=n_sites."""
     if abs(ell - 4 / n_sites) < 1e-12:
         return "4/N"
     if abs(ell - 1 / n_sites) < 1e-12:
@@ -116,17 +116,17 @@ def ell_label(ell, n_sites):
     return f"{ell:.12g}"
 
 
-def format_bl_label(bl_prob):
-    """Format broken-link probability labels with readable decimal/scientific notation."""
+def format_bl_label(bl_prob, style="scientific"):
+    """Format broken-link probability labels in LaTeX-friendly scientific or decimal form."""
     if abs(bl_prob) < 1e-15:
         return "$p=0$"
+
+    if style == "decimal":
+        return f"$p={bl_prob:.3g}$"
 
     mantissa_str, exp_str = f"{bl_prob:.3e}".split("e")
     mantissa = float(mantissa_str)
     exponent = int(exp_str)
-
-    if -2 <= exponent <= 2:
-        return f"$p={bl_prob:.3g}$"
 
     if abs(mantissa - 1.0) < 1e-12:
         return f"$p=10^{{{exponent}}}$"

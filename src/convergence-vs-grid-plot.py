@@ -1,13 +1,16 @@
 import argparse
 import matplotlib.pyplot as plt
 import numpy as np
-from shared_utils import load_json, merge_nested_num_dict
+from shared_utils import format_bl_label, load_json, merge_nested_num_dict
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Plot convergence-vs-grid data from JSON file(s).")
-    parser.add_argument("files", nargs="*", default=["convergence-vs-grid-data.json"])
-    parser.add_argument("--output", "-o", default="convergence-vs-grid.pdf")
+    parser = argparse.ArgumentParser(
+        description="Plot convergence-vs-grid data from JSON file(s).",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+    parser.add_argument("files", nargs="*", default=["convergence-vs-grid-data.json"], help="JSON data files to load and merge.")
+    parser.add_argument("--output", "-o", default="convergence-vs-grid.pdf", help="Output PDF filename.")
     args = parser.parse_args()
 
     data_dict = {}
@@ -34,7 +37,7 @@ if __name__ == "__main__":
     for i, bl_prob in enumerate(bl_probs):
         vals = vals_by_bl[bl_prob]
         stds = std_by_bl[bl_prob]
-        plt.plot(grid_sizes, vals, "o-", label=f"$p={bl_prob}$", markersize=6, color=colors[i])
+        plt.plot(grid_sizes, vals, "o-", label=format_bl_label(bl_prob), markersize=6, color=colors[i])
         plt.fill_between(
             grid_sizes,
             [v - s for v, s in zip(vals, stds)],

@@ -5,9 +5,12 @@ from shared_utils import format_bl_label, load_json
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Plot succprob-vs-steps-broken-links data from JSON file(s).")
-    parser.add_argument("files", nargs="*", default=["succprob-vs-steps-broken-links-data.json"])
-    parser.add_argument("--output", "-o", default="succprob-vs-steps-broken-links.pdf")
+    parser = argparse.ArgumentParser(
+        description="Plot succprob-vs-steps-broken-links data from JSON file(s).",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+    parser.add_argument("files", nargs="*", default=["succprob-vs-steps-broken-links-data.json"], help="JSON data files to load and merge.")
+    parser.add_argument("--output", "-o", default="succprob-vs-steps-broken-links.pdf", help="Output PDF filename.")
     args = parser.parse_args()
 
     merged = {}

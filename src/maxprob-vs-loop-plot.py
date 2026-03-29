@@ -4,9 +4,12 @@ from shared_utils import format_bl_label, load_json, merge_nested_float_dict
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Plot maxprob-vs-loop data from JSON file(s).")
-    parser.add_argument("files", nargs="*", default=["maxprob-vs-loop-data.json"])
-    parser.add_argument("--output", "-o", default="maxprob-vs-loop.pdf")
+    parser = argparse.ArgumentParser(
+        description="Plot maxprob-vs-loop data from JSON file(s).",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+    parser.add_argument("files", nargs="*", default=["maxprob-vs-loop-data.json"], help="JSON data files to load and merge.")
+    parser.add_argument("--output", "-o", default="maxprob-vs-loop.pdf", help="Output PDF filename.")
     args = parser.parse_args()
 
     merged = {}

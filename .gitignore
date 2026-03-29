@@ -68,3 +68,4 @@ htmlcov/
 # *.pkl
 # *.pickle
 *.json
+*.pdf
