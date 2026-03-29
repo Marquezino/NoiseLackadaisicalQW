@@ -1,35 +1,15 @@
 import noisylack as nl
-import numpy as np
-import json
-import os
 import argparse
-
-def compute_convergence_value(w_probs, tail_frac=0.1):
-    """
-    Compute the 'converged' value as the mean of the last tail_frac fraction of the probability array.
-    """
-    num_tail = max(1, int(len(w_probs) * tail_frac))
-    return np.mean(w_probs[-num_tail:])
-
-def load_data(filename):
-    """Load existing data from JSON file, or return None if file doesn't exist."""
-    if os.path.exists(filename):
-        with open(filename, 'r') as f:
-            return json.load(f)
-    return None
-
-def save_data(filename, data):
-    """Save data to JSON file."""
-    with open(filename, 'w') as f:
-        json.dump(data, f, indent=2)
-
-def parse_float_list(s):
-    """Parse a comma-separated list of floats."""
-    return [float(x.strip()) for x in s.split(',')]
-
-def parse_int_list(s):
-    """Parse a comma-separated list of integers."""
-    return [int(x.strip()) for x in s.split(',')]
+from shared_utils import (
+    as_str_keyed_nested,
+    compute_convergence_value,
+    compute_tail_std,
+    load_json,
+    parse_float_list,
+    parse_int_list,
+    save_json,
+    steps_from_factor,
+)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
@@ -51,8 +31,8 @@ Examples:
                        help='Comma-separated list of broken link probabilities (default: 0.01,0.1,0.2,0.5)')
     
     parser.add_argument('--output', '-o', type=str,
-                       default='convergence-vs-grid-data.json',
-                       help='Output JSON filename (default: convergence-vs-grid-data.json)')
+                       default='convergence-vs-noise-data.json',
+                       help='Output JSON filename (default: convergence-vs-noise-data.json)')
     
     parser.add_argument('--shots', type=int, default=40,
                        help='Number of shots per experiment (default: 40)')
@@ -73,7 +53,7 @@ Examples:
     print(f"Step factor: {args.step_factor}")
     
     # Load existing data if it exists
-    existing_data = load_data(data_filename)
+    existing_data = load_json(data_filename)
     
     # Initialize data structures - use dict of dicts: {bl_prob: {grid_size: (val, std)}}
     # This allows flexible addition of new grid_sizes and bl_probs
@@ -106,19 +86,13 @@ Examples:
             
             # Need to run experiment for this combination
             N = grid_size * grid_size
-            steps = int(grid_size * np.log2(N) * args.step_factor)
-            steps = round(steps, -2)
+            steps = steps_from_factor(grid_size, args.step_factor)
             print(f"  Running experiment for bl_prob={bl_prob}, N={N}, steps={steps}")
             w_probs, w_stds, _ = nl.experiment(L=grid_size, ell=4/N, bl_prob=bl_prob, 
                                               num_steps=steps, shots=args.shots, save_all_steps=False)
             
             conv_val = compute_convergence_value(w_probs)
-            
-            # Compute standard deviation of the tail
-            tail_frac = 0.1
-            num_tail = max(1, int(len(w_probs) * tail_frac))
-            tail = w_probs[-num_tail:]
-            tail_std = np.std(tail)
+            tail_std = compute_tail_std(w_probs)
             
             # Store the result
             data_dict[bl_prob][grid_size] = {'val': float(conv_val), 'std': float(tail_std)}
@@ -130,17 +104,15 @@ Examples:
             data_to_save = {
                 'grid_sizes': grid_sizes,
                 'bl_probs': bl_probs,
-                'data': {str(k1): {str(k2): v for k2, v in v1.items()} 
-                        for k1, v1 in data_dict.items()}
+                'data': as_str_keyed_nested(data_dict)
             }
-            save_data(data_filename, data_to_save)
+            save_json(data_filename, data_to_save)
     
     # Final save
     data_to_save = {
         'grid_sizes': grid_sizes,
         'bl_probs': bl_probs,
-        'data': {str(k1): {str(k2): v for k2, v in v1.items()} 
-                for k1, v1 in data_dict.items()}
+        'data': as_str_keyed_nested(data_dict)
     }
-    save_data(data_filename, data_to_save)
+    save_json(data_filename, data_to_save)
     print(f"\nData saved to {data_filename}")

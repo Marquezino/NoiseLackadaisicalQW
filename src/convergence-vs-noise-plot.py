@@ -1,35 +1,18 @@
-import json
 import matplotlib.pyplot as plt
 import numpy as np
-import os
 import argparse
 
-def load_data(filename):
-    """Load data from JSON file."""
-    if not os.path.exists(filename):
-        raise FileNotFoundError(f"Data file {filename} not found. Please run convergence-vs-grid-generate.py first.")
-    
-    with open(filename, 'r') as f:
-        return json.load(f)
-
-def merge_data(data_dict, new_data):
-    """Merge new_data into data_dict. Later data overrides earlier data for conflicts."""
-    # Convert string keys back to floats/ints (JSON stores keys as strings)
-    new_data_dict = {float(k1): {int(k2): v for k2, v in v1.items()} 
-                    for k1, v1 in new_data.items()}
-    
-    # Merge: later data overrides earlier data
-    for bl_prob, grid_data in new_data_dict.items():
-        if bl_prob not in data_dict:
-            data_dict[bl_prob] = {}
-        data_dict[bl_prob].update(grid_data)
-    
-    return data_dict
+from shared_utils import (
+    load_json,
+    merge_nested_num_dict,
+)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Plot convergence data from JSON file(s)')
-    parser.add_argument('files', nargs='*', default=['convergence-vs-grid-data.json'],
-                       help='JSON data file(s) to load and merge (default: convergence-vs-grid-data.json)')
+    parser.add_argument('files', nargs='*', default=['convergence-vs-noise-data.json'],
+                       help='JSON data file(s) to load and merge (default: convergence-vs-noise-data.json)')
+    parser.add_argument('--output', '-o', default='convergence-vs-noise.pdf',
+                       help='Output PDF filename (default: convergence-vs-noise.pdf)')
     
     args = parser.parse_args()
     
@@ -39,13 +22,15 @@ if __name__ == '__main__':
     # Load and merge all files in order
     for filename in args.files:
         print(f"Loading data from {filename}...")
-        data = load_data(filename)
+        data = load_json(filename)
+        if data is None:
+            raise FileNotFoundError(f"Data file {filename} not found. Please run convergence-vs-noise-generate.py first.")
         
         # Load data format: {bl_prob: {grid_size: {'val': float, 'std': float}}}
         file_data = data['data']
         
         # Merge into combined data_dict (later files override earlier ones)
-        data_dict = merge_data(data_dict, file_data)
+        data_dict = merge_nested_num_dict(data_dict, file_data)
     
     print(f"Loaded and merged data from {len(args.files)} file(s)")
     
@@ -74,7 +59,7 @@ if __name__ == '__main__':
         convergence_stds[grid_size] = [grid_dict[grid_size].get(bp, {}).get('std', np.nan) 
                                        for bp in bl_probs]
     
-    print("Generating convergence-vs-noise.pdf...")
+    print(f"Generating {args.output}...")
     
     plt.figure()
     # Use a color cycle that can handle any number of grid_sizes
@@ -96,5 +81,5 @@ if __name__ == '__main__':
     plt.xscale('log')
     plt.legend(loc='lower left')
     plt.tight_layout()
-    plt.savefig('convergence-vs-noise.pdf')
-    print("Plot saved to convergence-vs-noise.pdf")
+    plt.savefig(args.output)
+    print(f"Plot saved to {args.output}")
