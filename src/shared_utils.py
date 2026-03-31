@@ -138,6 +138,23 @@ def format_bl_label(bl_prob, style="scientific"):
     return f"$p={mantissa_text} \\times 10^{{{exponent}}}$"
 
 
+def require_consistent_metadata(payload, filename, expected, fields, cast=int):
+    """Validate required metadata fields and enforce cross-file consistency."""
+    for field in fields:
+        if field not in payload:
+            raise KeyError(f"Data file {filename} is missing required field '{field}'.")
+
+        value = cast(payload[field])
+        if field not in expected:
+            expected[field] = value
+        elif expected[field] != value:
+            raise ValueError(
+                f"Inconsistent {field} across files: got {value} in {filename}, expected {expected[field]}."
+            )
+
+    return expected
+
+
 def json_copy(payload: Any):
     """Deep-copy JSON-compatible content via serialization."""
     return json.loads(json.dumps(payload))

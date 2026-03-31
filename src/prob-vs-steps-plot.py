@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 
-from shared_utils import format_ell_label, load_json
+from shared_utils import format_ell_label, load_json, require_consistent_metadata
 
 
 if __name__ == "__main__":
@@ -23,7 +23,7 @@ if __name__ == "__main__":
         if payload is None:
             raise FileNotFoundError(f"Data file {filename} not found.")
         merged.update(payload.get("data", {}))
-        metadata = payload
+        metadata = require_consistent_metadata(payload, filename, metadata, ("grid_size", "n_sites"), cast=int)
 
     grid_size = metadata["grid_size"]
     n_sites = metadata["n_sites"]

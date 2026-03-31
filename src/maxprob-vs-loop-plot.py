@@ -1,6 +1,6 @@
 import argparse
 import matplotlib.pyplot as plt
-from shared_utils import format_bl_label, load_json, merge_nested_float_dict
+from shared_utils import format_bl_label, load_json, merge_nested_float_dict, require_consistent_metadata
 
 
 if __name__ == "__main__":
@@ -13,13 +13,15 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     merged = {}
-    grid_size = 32
+    metadata = {}
     for filename in args.files:
         payload = load_json(filename)
         if payload is None:
             raise FileNotFoundError(f"Data file {filename} not found.")
         merged = merge_nested_float_dict(merged, payload.get("data", {}))
-        grid_size = int(payload.get("grid_size", grid_size))
+        metadata = require_consistent_metadata(payload, filename, metadata, ("grid_size",), cast=int)
+
+    grid_size = metadata["grid_size"]
 
     for bl_prob in sorted(merged.keys()):
         by_ell = merged[bl_prob]

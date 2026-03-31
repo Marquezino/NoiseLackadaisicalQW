@@ -89,7 +89,7 @@ Examples:
         # Convert string keys back to floats/ints (JSON stores keys as strings)
         data_dict = {float(k1): {int(k2): v for k2, v in v1.items()} for k1, v1 in data_dict.items()}
     else:
-        print(f"\nNo existing data found. Starting fresh...")
+        print("\nNo existing data found. Starting fresh...")
 
     # Run experiments - iterate over grid_sizes first to get complete data for smaller grids sooner
     for grid_size in grid_sizes:

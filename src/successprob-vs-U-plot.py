@@ -2,7 +2,7 @@ import argparse
 import matplotlib.pyplot as plt
 import numpy as np
 
-from shared_utils import format_ell_label, load_json
+from shared_utils import format_ell_label, load_json, require_consistent_metadata
 
 
 if __name__ == "__main__":
@@ -21,9 +21,9 @@ if __name__ == "__main__":
         if payload is None:
             raise FileNotFoundError(f"Data file {filename} not found.")
         merged.update(payload.get("data", {}))
-        metadata = payload
+        metadata = require_consistent_metadata(payload, filename, metadata, ("n_sites",), cast=int)
 
-    n_sites = int(metadata.get("n_sites", 1))
+    n_sites = metadata["n_sites"]
 
     style_cycle = ["k-", "b--", "r-.", "g:"]
     plt.figure()
