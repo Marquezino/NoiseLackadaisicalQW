@@ -1,6 +1,5 @@
 import numpy as np
 from numpy import sqrt
-import matplotlib.pyplot as plt
 from concurrent.futures import ProcessPoolExecutor
 
 # Define the indices of the coin.
