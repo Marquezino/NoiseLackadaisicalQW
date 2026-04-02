@@ -19,8 +19,30 @@ if __name__ == "__main__":
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument("--grid-size", type=int, default=32, help="Grid side length L.")
-    parser.add_argument("--ell-min", type=float, default=0.0, help="Minimum ell in sweep.")
-    parser.add_argument("--ell-max", type=float, default=0.02, help="Maximum ell in sweep.")
+    parser.add_argument(
+        "--ell-sweep-mode",
+        choices=["linear", "log"],
+        default="log",
+        help="Distribution of ell sweep values (linear uses linspace, log uses logspace).",
+    )
+    parser.add_argument(
+        "--ell-min",
+        type=float,
+        default=None,
+        help=(
+            "Lower bound for ell sweep. In linear mode this is ell itself. "
+            "In log mode this is a base-10 exponent for logspace."
+        ),
+    )
+    parser.add_argument(
+        "--ell-max",
+        type=float,
+        default=None,
+        help=(
+            "Upper bound for ell sweep. In linear mode this is ell itself. "
+            "In log mode this is a base-10 exponent for logspace."
+        ),
+    )
     parser.add_argument("--ell-points", type=int, default=21, help="Number of ell points in sweep.")
     parser.add_argument("--bl-probs", type=parse_float_list, default="0.0,0.001,0.002,0.004", help="Comma-separated broken-link probabilities.")
     parser.add_argument(
@@ -35,10 +57,22 @@ if __name__ == "__main__":
     parser.add_argument("--force", action="store_true", help="Recompute entries even if already present")
     args = parser.parse_args()
 
-    ell_values = np.linspace(args.ell_min, args.ell_max, args.ell_points)
+    n_sites = args.grid_size * args.grid_size
+    if args.ell_points <= 0:
+        raise ValueError("--ell-points must be positive.")
+
+    default_log_center = np.log10(4.0 / n_sites)
+    if args.ell_sweep_mode == "linear":
+        ell_min = 0.0 if args.ell_min is None else float(args.ell_min)
+        ell_max = (40.0 / n_sites) if args.ell_max is None else float(args.ell_max)
+        ell_values = np.linspace(ell_min, ell_max, args.ell_points)
+    else:
+        ell_min = (default_log_center - 2.0) if args.ell_min is None else float(args.ell_min)
+        ell_max = (default_log_center + 2.0) if args.ell_max is None else float(args.ell_max)
+        ell_values = np.logspace(ell_min, ell_max, args.ell_points)
+
     bl_probs = args.bl_probs
     steps = steps_from_factor(args.grid_size, args.step_factor)
-    n_sites = args.grid_size * args.grid_size
 
     payload = load_json(args.output)
     data = {}
@@ -87,6 +121,9 @@ if __name__ == "__main__":
             data_to_save = {
                 "grid_size": int(args.grid_size),
                 "step_factor": float(args.step_factor),
+                "ell_sweep_mode": args.ell_sweep_mode,
+                "ell_min": float(ell_min),
+                "ell_max": float(ell_max),
                 "ell_values": [float(v) for v in ell_values],
                 "ell_labels": [format_ell_label(float(v), n_sites) for v in ell_values],
                 "bl_probs": [float(v) for v in bl_probs],
@@ -100,6 +137,9 @@ if __name__ == "__main__":
     data_to_save = {
         "grid_size": int(args.grid_size),
         "step_factor": float(args.step_factor),
+        "ell_sweep_mode": args.ell_sweep_mode,
+        "ell_min": float(ell_min),
+        "ell_max": float(ell_max),
         "ell_values": [float(v) for v in ell_values],
         "ell_labels": [format_ell_label(float(v), n_sites) for v in ell_values],
         "bl_probs": [float(v) for v in bl_probs],

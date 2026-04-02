@@ -28,10 +28,11 @@ if __name__ == "__main__":
         ordered = sorted(by_ell.items(), key=lambda kv: kv[0])
         x_vals = [k for k, _ in ordered]
         y_vals = [entry["max_prob"] for _, entry in ordered]
-        plt.plot(x_vals, y_vals, "-", label=format_bl_label(bl_prob))
+        plt.plot(x_vals, y_vals, "-x", label=format_bl_label(bl_prob))
 
     plt.xlabel("Self-loop weight ($\\ell$)")
     plt.ylabel("Maximum success probability ($P_{max}$)")
+    plt.xscale('log')
     plt.axvline(x=4 / (grid_size ** 2), linestyle=":", label="$4/N$")
     plt.legend(loc="upper right")
     plt.tight_layout()

@@ -33,5 +33,6 @@ python src/prob-vs-steps-generate.py --grid-size 16 --bl-prob 0.01
 python src/prob-vs-steps-plot.py
 
 python src/maxprob-vs-loop-generate.py --ell-points 9
+python src/maxprob-vs-loop-generate.py --ell-sweep-mode linear --ell-points 9
 python src/maxprob-vs-loop-plot.py
 ```
