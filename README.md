@@ -1,5 +1,6 @@
 # NoiseLackadaisicalQW
 Python code used in the research paper "Noise-Resilient Spatial Search with Lackadaisical Quantum Walks", https://arxiv.org/abs/2508.13462.
+The paper is compatible with commit [21bb4e4d64fea63216df491abd880db822878c83](https://github.com/Marquezino/NoiseLackadaisicalQW/commit/21bb4e4d64fea63216df491abd880db822878c83).
 
 ## Jupyter Notebook
 
